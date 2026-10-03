@@ -22,8 +22,8 @@ export default function Header() {
   const { itemCount, openCart, openSearch } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [collectionsDropdown, setCollectionsDropdown] = useState(false);
-  const [typesDropdown, setTypesDropdown] = useState(false);
+  const [concernDropdown, setConcernDropdown] = useState(false);
+  const [mobileConcernOpen, setMobileConcernOpen] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,17 +36,8 @@ export default function Header() {
   // Close mobile menu on page navigation
   useEffect(() => {
     setMobileMenuOpen(false);
-    setCollectionsDropdown(false);
-    setTypesDropdown(false);
+    setConcernDropdown(false);
   }, [pathname]);
-
-  const navLinks = [
-    { label: "Shop All", href: "/shop" },
-    { label: "Personalized", href: "/personalized" },
-    { label: "Custom Bulk Orders", href: "/custom-orders" },
-    { label: "About Our Craft", href: "/about" },
-    { label: "Contact", href: "/contact" },
-  ];
 
   return (
     <>
@@ -101,100 +92,126 @@ export default function Header() {
 
             {/* Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center space-x-8 text-sm font-medium text-[#221D1A]">
+              {/* 1st Item: Shop All */}
               <Link
                 href="/shop"
                 className={`transition-colors hover:text-[#B46036] tracking-wide ${
-                  pathname === "/shop" ? "text-[#B46036] font-semibold" : ""
+                  pathname === "/shop" && !concernDropdown ? "text-[#B46036] font-semibold" : ""
                 }`}
               >
                 Shop All
               </Link>
 
-              {/* Candle Types Dropdown */}
+              {/* 2nd Item: Shop by Concern Dropdown (Contains Collection & Type inside it) */}
               <div
                 className="relative"
-                onMouseEnter={() => setTypesDropdown(true)}
-                onMouseLeave={() => setTypesDropdown(false)}
+                onMouseEnter={() => setConcernDropdown(true)}
+                onMouseLeave={() => setConcernDropdown(false)}
               >
                 <button
                   type="button"
-                  className="flex items-center gap-1 hover:text-[#B46036] transition-colors tracking-wide py-2 focus:outline-hidden"
+                  onClick={() => setConcernDropdown(!concernDropdown)}
+                  className={`flex items-center gap-1.5 hover:text-[#B46036] transition-colors tracking-wide py-2 focus:outline-hidden ${
+                    concernDropdown || pathname.startsWith("/collections")
+                      ? "text-[#B46036] font-semibold"
+                      : ""
+                  }`}
+                  aria-expanded={concernDropdown}
                 >
-                  <span>Candle Types</span>
-                  <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+                  <span>Shop by Concern</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      concernDropdown ? "rotate-180 text-[#B46036]" : "opacity-70"
+                    }`}
+                  />
                 </button>
 
-                {typesDropdown && (
-                  <div className="absolute top-full left-0 w-72 bg-white border border-[#E6DED3] rounded-lg shadow-lg py-2 z-50 animate-fade-in">
-                    <div className="px-4 py-2 border-b border-[#F3ECE2]">
-                      <span className="text-xs uppercase tracking-wider text-[#73675E] font-semibold">
-                        Shop by Type
-                      </span>
+                {concernDropdown && (
+                  <div className="absolute top-full -left-12 w-[620px] bg-white border border-[#E6DED3] rounded-xl shadow-xl p-5 z-50 animate-fade-in">
+                    <div className="grid grid-cols-2 gap-6 divide-x divide-[#F3ECE2]">
+                      {/* Left Column: By Candle Type */}
+                      <div className="space-y-3">
+                        <div className="pb-2 border-b border-[#F3ECE2]">
+                          <span className="text-[11px] uppercase tracking-wider text-[#B46036] font-bold block">
+                            By Candle Type
+                          </span>
+                          <span className="text-[11px] text-[#73675E]">
+                            4 distinct artisanal formats
+                          </span>
+                        </div>
+
+                        <div className="space-y-1">
+                          {candleCategories.map((cat) => (
+                            <Link
+                              key={cat.id}
+                              href={`/shop?type=${cat.id}`}
+                              className="group flex items-start gap-2.5 p-2 rounded-lg hover:bg-[#FAF7F2] transition-colors"
+                            >
+                              <span className="text-xl p-1 bg-[#FAF7F2] group-hover:bg-[#F3ECE2] rounded-md transition-colors shrink-0">
+                                {cat.icon}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-semibold text-[#221D1A] group-hover:text-[#B46036] transition-colors flex items-center justify-between">
+                                  <span>{cat.name}</span>
+                                  <span className="text-[10px] text-[#8E8379] font-normal">4 pours</span>
+                                </div>
+                                <div className="text-[11px] text-[#73675E] truncate">
+                                  {cat.tagline}
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Right Column: By Collection & Concern */}
+                      <div className="pl-6 space-y-3">
+                        <div className="pb-2 border-b border-[#F3ECE2]">
+                          <span className="text-[11px] uppercase tracking-wider text-[#B46036] font-bold block">
+                            By Collection &amp; Occasion
+                          </span>
+                          <span className="text-[11px] text-[#73675E]">
+                            Formulated for vibe, ritual &amp; gifting
+                          </span>
+                        </div>
+
+                        <div className="space-y-1 max-h-[250px] overflow-y-auto pr-1">
+                          {collections.map((col) => (
+                            <Link
+                              key={col.slug}
+                              href={`/collections/${col.slug}`}
+                              className="group block p-2 rounded-lg hover:bg-[#FAF7F2] transition-colors"
+                            >
+                              <div className="text-xs font-semibold text-[#221D1A] group-hover:text-[#B46036] transition-colors">
+                                {col.title}
+                              </div>
+                              <div className="text-[11px] text-[#73675E] truncate">
+                                {col.subtitle}
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    {candleCategories.map((cat) => (
-                      <Link
-                        key={cat.id}
-                        href={`/shop?type=${cat.id}`}
-                        className="block px-4 py-2.5 text-sm hover:bg-[#FAF7F2] hover:text-[#B46036] transition-colors"
-                      >
-                        <div className="flex items-center gap-2 font-medium">
-                          <span>{cat.icon}</span>
-                          <span>{cat.name}</span>
-                        </div>
-                        <div className="text-[11px] text-[#73675E] truncate pl-6">
-                          {cat.tagline}
-                        </div>
-                      </Link>
-                    ))}
-                    <div className="border-t border-[#F3ECE2] mt-1 pt-1">
+
+                    {/* Bottom Bar */}
+                    <div className="border-t border-[#F3ECE2] mt-4 pt-3 flex items-center justify-between text-xs bg-[#FAF7F2]/80 -mx-5 -mb-5 px-5 py-2.5 rounded-b-xl">
+                      <span className="text-[11px] text-[#73675E]">
+                        All 16 handcrafted candles with custom colour &amp; scent selection
+                      </span>
                       <Link
                         href="/shop"
-                        className="block px-4 py-2 text-xs font-semibold text-[#B46036] hover:bg-[#FAF7F2] transition-colors"
+                        className="font-semibold text-[#B46036] hover:text-[#221D1A] transition-colors flex items-center gap-1"
                       >
-                        Explore Full Catalogue →
+                        <span>View All 16 Candles</span>
+                        <span>→</span>
                       </Link>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Collections Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={() => setCollectionsDropdown(true)}
-                onMouseLeave={() => setCollectionsDropdown(false)}
-              >
-                <button
-                  type="button"
-                  className="flex items-center gap-1 hover:text-[#B46036] transition-colors tracking-wide py-2 focus:outline-hidden"
-                >
-                  <span>Collections</span>
-                  <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-                </button>
-
-                {collectionsDropdown && (
-                  <div className="absolute top-full left-0 w-64 bg-white border border-[#E6DED3] rounded-lg shadow-lg py-2 z-50 animate-fade-in">
-                    <div className="px-4 py-2 border-b border-[#F3ECE2]">
-                      <span className="text-xs uppercase tracking-wider text-[#73675E] font-semibold">
-                        Seasonal &amp; Occasions
-                      </span>
-                    </div>
-                    {collections.map((col) => (
-                      <Link
-                        key={col.slug}
-                        href={`/collections/${col.slug}`}
-                        className="block px-4 py-2.5 text-sm hover:bg-[#FAF7F2] hover:text-[#B46036] transition-colors"
-                      >
-                        <div className="font-medium">{col.title}</div>
-                        <div className="text-xs text-[#73675E] truncate">
-                          {col.subtitle}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-
+              {/* 3rd Item: Personalized */}
               <Link
                 href="/personalized"
                 className={`transition-colors hover:text-[#B46036] tracking-wide flex items-center gap-1.5 ${
@@ -207,17 +224,7 @@ export default function Header() {
                 <span>Personalized</span>
               </Link>
 
-              <Link
-                href="/custom-orders"
-                className={`transition-colors hover:text-[#B46036] tracking-wide ${
-                  pathname === "/custom-orders"
-                    ? "text-[#B46036] font-semibold"
-                    : ""
-                }`}
-              >
-                Bulk / Events
-              </Link>
-
+              {/* 4th Item: About */}
               <Link
                 href="/about"
                 className={`transition-colors hover:text-[#B46036] tracking-wide ${
@@ -227,6 +234,7 @@ export default function Header() {
                 About
               </Link>
 
+              {/* 5th Item: Contact */}
               <Link
                 href="/contact"
                 className={`transition-colors hover:text-[#B46036] tracking-wide ${
@@ -322,40 +330,67 @@ export default function Header() {
                 Shop All Candles
               </Link>
 
-              {/* Mobile Candle Types */}
+              {/* Mobile "Shop by Concern" with Type and Collection inside it */}
               <div className="pt-2 border-t border-[#E6DED3]/60">
-                <span className="text-xs uppercase tracking-wider text-[#73675E] font-semibold block mb-2">
-                  Candle Types
-                </span>
-                <div className="pl-2 space-y-2">
-                  {candleCategories.map((cat) => (
-                    <Link
-                      key={cat.id}
-                      href={`/shop?type=${cat.id}`}
-                      className="flex items-center gap-2.5 text-sm text-[#221D1A] hover:text-[#B46036] transition-colors py-0.5"
-                    >
-                      <span className="text-base">{cat.icon}</span>
-                      <span className="font-medium">{cat.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileConcernOpen(!mobileConcernOpen)}
+                  className="w-full flex items-center justify-between text-xs uppercase tracking-wider text-[#B46036] font-bold py-1 focus:outline-hidden"
+                >
+                  <span>Shop by Concern</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      mobileConcernOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
 
-              <div className="pt-2 border-t border-[#E6DED3]/60">
-                <span className="text-xs uppercase tracking-wider text-[#73675E] font-semibold block mb-2">
-                  Seasonal Collections
-                </span>
-                <div className="pl-3 space-y-2.5">
-                  {collections.map((col) => (
-                    <Link
-                      key={col.slug}
-                      href={`/collections/${col.slug}`}
-                      className="block text-sm text-[#221D1A] hover:text-[#B46036] transition-colors"
-                    >
-                      {col.title}
-                    </Link>
-                  ))}
-                </div>
+                {mobileConcernOpen && (
+                  <div className="space-y-3 pt-2">
+                    {/* Candle Types inside Shop by Concern */}
+                    <div className="bg-[#F3ECE2]/60 p-3 rounded-lg border border-[#E6DED3]">
+                      <span className="text-[10px] uppercase tracking-wider text-[#73675E] font-bold block mb-2">
+                        By Candle Type
+                      </span>
+                      <div className="space-y-1.5">
+                        {candleCategories.map((cat) => (
+                          <Link
+                            key={cat.id}
+                            href={`/shop?type=${cat.id}`}
+                            className="flex items-center justify-between text-xs text-[#221D1A] hover:text-[#B46036] transition-colors py-0.5"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>{cat.icon}</span>
+                              <span className="font-medium">{cat.name}</span>
+                            </span>
+                            <span className="text-[10px] text-[#8E8379]">4 pours</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Collections inside Shop by Concern */}
+                    <div className="bg-[#F3ECE2]/60 p-3 rounded-lg border border-[#E6DED3]">
+                      <span className="text-[10px] uppercase tracking-wider text-[#73675E] font-bold block mb-2">
+                        By Collection &amp; Occasion
+                      </span>
+                      <div className="space-y-2">
+                        {collections.map((col) => (
+                          <Link
+                            key={col.slug}
+                            href={`/collections/${col.slug}`}
+                            className="block text-xs text-[#221D1A] hover:text-[#B46036] transition-colors"
+                          >
+                            <div className="font-medium">{col.title}</div>
+                            <div className="text-[10px] text-[#73675E] truncate">
+                              {col.subtitle}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 border-t border-[#E6DED3]/60 space-y-4">
@@ -365,13 +400,6 @@ export default function Header() {
                 >
                   <Sparkles className="w-4 h-4 text-[#C29D57]" />
                   <span>Personalized Candles</span>
-                </Link>
-
-                <Link
-                  href="/custom-orders"
-                  className="block text-base font-medium text-[#221D1A] hover:text-[#B46036]"
-                >
-                  Bulk &amp; Event Gifting
                 </Link>
 
                 <Link
